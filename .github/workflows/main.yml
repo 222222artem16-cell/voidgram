@@ -20,6 +20,9 @@ jobs:
       - name: Copy project files
         run: rm -rf _x/voidgram/.github && cp -a _x/voidgram/. ./ && rm -rf _x
 
+      - name: Fix missing import
+        run: sed -i '/^package app.voidgram/a import kotlinx.serialization.json.decodeFromJsonElement' android/app/src/main/java/app/voidgram/Api.kt android/app/src/main/java/app/voidgram/AppModel.kt
+
       - name: Save unpacked files to repo
         run: git add -A && (git -c user.name=bot -c user.email=bot@users.noreply.github.com commit -m unpack && git push || true)
 
@@ -44,4 +47,4 @@ jobs:
         with:
           tag_name: build-${{ github.run_number }}
           name: Voidgram build ${{ github.run_number }}
-          files: voidgram.apk 
+          files: voidgram.apk
