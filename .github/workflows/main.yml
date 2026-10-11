@@ -44,4 +44,4 @@ jobs:
         with:
           tag_name: build-${{ github.run_number }}
           name: Voidgram build ${{ github.run_number }}
-          files: voidgram.apk
+          files: voidgram.apk 
