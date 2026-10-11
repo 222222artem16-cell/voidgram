@@ -14,14 +14,34 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Unpack voidgram.zip into the repository
-        run: |
-          test -f voidgram.zip || { echo "voidgram.zip not found in repo root"; exit 1; }
-          rm -rf _x && mkdir _x && unzip -q voidgram.zip -d _x
-          rm -rf _x/voidgram/.github
-          cp -a _x/voidgram/. ./
-          rm -rf _x
-          git config user.name "github-actions"
-          git config user.email "github-actions@users.noreply.github.com"
-          git add -A
-          if ! git diff --cached --quiet; the
+      - name: Unzip project
+        run: unzip -q -o voidgram.zip -d _x
+
+      - name: Copy project files
+        run: rm -rf _x/voidgram/.github && cp -a _x/voidgram/. ./ && rm -rf _x
+
+      - name: Save unpacked files to repo
+        run: git add -A && (git -c user.name=bot -c user.email=bot@users.noreply.github.com commit -m unpack && git push || true)
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.9
+
+      - name: Build debug APK
+        working-directory: android
+        run: gradle :app:assembleDebug --no-daemon --stacktrace
+
+      - name: Rename APK
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk voidgram.apk
+
+      - name: Publish release with APK
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: Voidgram build ${{ github.run_number }}
+          files: voidgram.apk
